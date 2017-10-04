@@ -33,16 +33,21 @@ tags_SupportEmail="rudy@thnkbig.com"
 tags_OwnerGroups="DevOps"
 
 #cat <<EOF > ~/tmp/print.sh
-cat << EOF > /tmp/user_data_file.sh
+#cat << EOF > /tmp/user_data_file.sh
 #!/bin/bash
-echo \$PWD
-echo $PWD
-EOF
+#echo \$PWD
+#echo $PWD
+#EOF
 
 START_TIME=$(date)
 
+# uses user data
 echo 'creating instance...'
-id=$(aws --profile $account  --region $region ec2 run-instances --image-id $image_id --security-group-ids $AWS_SECURITY_GROUP_IDS --count $count --instance-type $instance_type --key-name $ssh_key_name --subnet-id $subnet_id --iam-instance-profile $AWS_IAM_INSTANCE_PROFILE --user-data file://$user_data_file --associate-public-ip-address  --block-device-mapping "[ { \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": $root_vol_size } } ]" --query 'Instances[*].InstanceId' --output text)
+#id=$(aws --profile $account  --region $region ec2 run-instances --image-id $image_id --security-group-ids $AWS_SECURITY_GROUP_IDS --count $count --instance-type $instance_type --key-name $ssh_key_name --subnet-id $subnet_id --iam-instance-profile $AWS_IAM_INSTANCE_PROFILE --user-data file://$user_data_file --associate-public-ip-address  --block-device-mapping "[ { \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": $root_vol_size } } ]" --query 'Instances[*].InstanceId' --output text)
+
+# does not use user data file
+id=$(aws --profile $account  --region $region ec2 run-instances --image-id $image_id --security-group-ids $AWS_SECURITY_GROUP_IDS --count $count --instance-type $instance_type --key-name $ssh_key_name --subnet-id $subnet_id --iam-instance-profile $AWS_IAM_INSTANCE_PROFILE --associate-public-ip-address  --block-device-mapping "[ { \"DeviceName\": \"/dev/sda1\", \"Ebs\": { \"VolumeSize\": $root_vol_size } } ]" --query 'Instances[*].InstanceId' --output text)
+
 
 #--iam-instance-profile Name=$AWS_IAM_INSTANCE_PROFILE
 #--security-group-ids $AWS_SECURITY_GROUP_IDS
@@ -82,15 +87,18 @@ chmod +x terminate-instance.sh
 #echo "remove the servers entry from ~/.ssh/known_hosts"
 #ssh-keygen -R $IP
 
-echo "Start: $START_TIME"
-echo "Now:   $(date)"
-echo Done.
+#aws ec2 wait instance-status-ok --instance-ids $id && echo "Instance is ready. SSH tunnel is now Open."
+
+
 
 #currently hangs
 #add this when script is done
-#echo "waiting to login to instance"
-# Polls EC2 every 15 seconds for all checks to pass, then opens the tunnel
-#aws ec2 wait instance-status-ok --instance-ids $id && echo "Instance is ready. Opening SSH tunnel." && ssh -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $SSH_KEY -N $EC2_USER@$IP
+echo "waiting to login to instance"
+#Polls EC2 every 15 seconds for all checks to pass, then opens the tunnel
+aws ec2 wait instance-status-ok --instance-ids $id && echo "Instance is ready. Opening SSH tunnel." && ssh -t -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $SSH_KEY $EC2_USER@$IP -T < ./gg-chef-server-bootstrap.sh
 
+echo "Start: $START_TIME"
+echo "Now:   $(date)"
+echo Done.
 #echo "Hello World"
 #exit 0
