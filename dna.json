@@ -1,0 +1,21 @@
+{
+   "chef_client": {
+     "init_style": "none"
+   },
+  "chef-server": {
+    "accept_license": true,
+    "addons": ["manage","push-jobs-server","reporting"],
+    "topology": "standalone",
+    "version": "12.14.0"
+  },
+  "firewall": {
+    "allow_established": true,
+    "allow_ssh": true
+  },
+  "system": {
+    "delay_network_restart": false,
+    "manage_hostsfile": true,
+    "short_hostname": "chef12"
+  },
+  "tags": []
+}
